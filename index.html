@@ -1,55 +1,495 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Upper Body Home Workout Plan</title>
+<meta charset="utf-8">
+<title>Upper Body Workout</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Bebas+Neue&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }
-h1 { color: #2c3e50; }
-h2 { color: #34495e; margin-top: 20px; }
-h3 { color: #2c3e50; margin-top: 15px; }
-img { max-width: 100%; height: auto; display: block; margin-top: 10px; }
+  :root {
+    --cream: #EDE7DA;
+    --ink: #14120E;
+    --rule: rgba(20,18,14,0.14);
+    --muted: rgba(20,18,14,0.55);
+    --accent: #FBBF24;
+    --display: 'Space Grotesk', system-ui, sans-serif;
+    --headline: 'Bebas Neue', 'Space Grotesk', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --pad: 52px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--cream); color: var(--ink); font-family: var(--display); }
+  body { overflow: hidden; -webkit-font-smoothing: antialiased; }
+
+  .app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 22px;
+    flex-shrink: 0;
+    background: var(--cream);
+    z-index: 5;
+    border-bottom: 1px solid var(--rule);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--headline); font-size: 22px; letter-spacing: 0.02em;
+  }
+  .brand .bar {
+    display: inline-block; width: 24px; height: 16px;
+    background:
+      linear-gradient(90deg, currentColor 4px, transparent 4px 8px,
+                      currentColor 8px 12px, transparent 12px 16px,
+                      currentColor 16px 20px, transparent 20px 24px);
+  }
+  .brand-meta { font-family: var(--mono); font-size: 11px; opacity: 0.5; letter-spacing: 0.06em; }
+  .topbar-spacer { flex: 1; }
+  .session-tabs { display: flex; gap: 0; }
+  .session-tabs button {
+    border: none; background: transparent; cursor: pointer;
+    padding: 8px 14px;
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -14px; padding-bottom: 22px;
+  }
+  .session-tabs button.is-current { color: var(--ink); border-bottom-color: var(--accent); }
+
+  .sessions { flex: 1; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+  .sessions::-webkit-scrollbar { width: 0; }
+
+  .session { border-top: 1px solid var(--rule); }
+  .session:first-child { border-top: none; }
+
+  .session-banner {
+    display: flex; align-items: center; gap: 16px;
+    padding: 18px var(--pad);
+    background: var(--ink); color: var(--cream);
+  }
+  .session-banner .name {
+    font-family: var(--headline); font-size: 28px; letter-spacing: 0.02em;
+  }
+  .session-banner .meta {
+    font-family: var(--mono); font-size: 11px; opacity: 0.65;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .session-banner .spacer { flex: 1; }
+  .rounds {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    opacity: 0.85;
+  }
+  .rounds-dots { display: flex; gap: 5px; }
+  .rounds-dots .d {
+    width: 9px; height: 9px; border-radius: 50%;
+    border: 1.2px solid rgba(255,255,255,0.45);
+    transition: all .25s;
+  }
+  .rounds-dots .d.done { background: var(--accent); border-color: var(--accent); }
+  .rounds-dots .d.current { border-color: white; }
+
+  .scroller {
+    height: calc(100vh - 110px);
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+    position: relative;
+  }
+  .scroller::-webkit-scrollbar { width: 0; }
+
+  .slide {
+    height: calc(100vh - 110px);
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    position: relative;
+    overflow: hidden;
+    background: var(--ink);
+  }
+  .slide::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(20,18,14,0.55) 0%, rgba(20,18,14,0) 22%, rgba(20,18,14,0) 60%, rgba(20,18,14,0.7) 100%),
+      linear-gradient(90deg, rgba(20,18,14,0.45) 0%, rgba(20,18,14,0) 35%);
+    pointer-events: none; z-index: 2;
+  }
+  .slide img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover; object-position: center;
+    z-index: 1;
+  }
+
+  .overlay {
+    position: relative; z-index: 3;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: var(--pad);
+    color: white;
+  }
+  .ovl-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 24px;
+  }
+  .ovl-tag {
+    font-family: var(--mono); font-size: 11px; opacity: 0.85;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .ovl-tag .v { width: 1px; height: 12px; background: rgba(255,255,255,0.5); }
+  .ovl-progress {
+    display: flex; gap: 4px; min-width: 280px;
+  }
+  .ovl-progress .seg {
+    flex: 1; height: 3px; background: rgba(255,255,255,0.25);
+    cursor: pointer; transition: background .25s;
+  }
+  .ovl-progress .seg.active { background: var(--accent); }
+  .ovl-progress .seg.done { background: white; opacity: 0.85; }
+
+  .ovl-mid {
+    display: flex; flex-direction: column; justify-content: flex-end;
+    gap: 12px;
+    margin-top: auto;
+  }
+  .big-num {
+    font-family: var(--headline);
+    font-size: clamp(140px, 22vw, 320px);
+    line-height: 0.78;
+    letter-spacing: -0.01em;
+    margin: 0; padding: 0;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  h1.ex-name {
+    margin: 0;
+    font-family: var(--headline);
+    font-size: clamp(56px, 8vw, 128px);
+    line-height: 0.9; letter-spacing: 0.005em;
+    text-wrap: balance;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.35);
+  }
+  .stats-row {
+    display: flex; gap: 24px; align-items: baseline;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-label {
+    font-family: var(--mono); font-size: 10px; opacity: 0.7;
+    letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .stat-val {
+    font-family: var(--headline); font-size: 28px; letter-spacing: 0.02em;
+  }
+  .stat-val.accent { color: var(--accent); }
+
+  .ovl-bot {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 24px;
+    margin-top: 24px;
+  }
+  .cue {
+    max-width: 56ch;
+    font-size: 14px; line-height: 1.55;
+    background: rgba(20,18,14,0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 14px 18px;
+    border-left: 2px solid var(--accent);
+    text-wrap: pretty;
+  }
+
+  .ticks-cluster { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+  .ticks-cluster .lbl {
+    font-family: var(--mono); font-size: 10px; opacity: 0.7;
+    letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .ticks { display: flex; gap: 6px; }
+  .tick {
+    width: 26px; height: 26px;
+    border: 1.5px solid rgba(255,255,255,0.45);
+    display: flex; align-items: center; justify-content: center;
+    transition: all .25s;
+  }
+  .tick.done { background: var(--accent); border-color: var(--accent); }
+  .tick svg { display: block; opacity: 0; }
+  .tick.done svg { opacity: 1; }
+
+  .round-btn {
+    background: var(--accent); color: var(--ink); border: none;
+    padding: 18px 26px;
+    font-family: var(--headline); font-size: 22px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 14px;
+    transition: transform .15s, background .15s;
+  }
+  .round-btn:hover { transform: translateY(-2px); }
+  .round-btn.complete { background: white; color: var(--ink); }
+  .round-btn[disabled] { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .round-btn .arrow {
+    width: 28px; height: 28px;
+    background: rgba(20,18,14,0.18);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
 </style>
 </head>
 <body>
-<h1>Upper Body Home Workout Plan</h1>
-<h2>Warm-Up (2 minutes)</h2>
-<ul>
-<li><strong>Chin tucks</strong>: Stand tall and gently pull your chin backward as if making a double chin. Do 10 repetitions.</li>
-<li><strong>Shoulder-blade circles</strong>: Roll your shoulder blades forward and backward ten times each.</li>
-<li><strong>Wrist circles</strong>: Rotate your wrists in both directions; perform 10 repetitions each way.</li>
-<li><strong>Scapular push-up on wall or chair</strong>: Keep your arms straight and move only your shoulder blades forward and back for 10 reps.</li>
-</ul>
-<h2>Workout A (12 minutes)</h2>
-<p>Cycle through the following exercises with minimal rest, aiming for 2–3 rounds. Perform the prescribed reps and control the movement.</p>
-<h3>Dumbbell Floor Press – 10–15 reps</h3>
-<p>Lie on your back with knees bent and press two dumbbells up from the floor. This limited range of motion emphasizes the triceps and chest while keeping your shoulders safe.</p>
-<img src="dumbbell_floor_press.gif" alt="Dumbbell Floor Press">
-<h3>Seated Dumbbell Shoulder Press – 8–12 reps</h3>
-<p>Sit on a chair and press two dumbbells overhead without leaning back. Keep your ribs down and neck long to protect your spine.</p>
-<img src="seated_dumbbell_shoulder_press.gif" alt="Seated Dumbbell Shoulder Press">
-<h3>Dumbbell Lateral Raise – 10–15 reps</h3>
-<p>Stand tall and lift your dumbbells out to the sides with a slight bend in the elbows until your arms are parallel to the floor. Avoid swinging; pause briefly at the top and control the descent to work your side deltoids.</p>
-<img src="dumbbell_lateral_raise.gif" alt="Dumbbell Lateral Raise">
-<h3>Hammer Curl – 10–15 reps</h3>
-<p>Stand with palms facing each other and curl the dumbbells up, keeping your elbows close to your sides. A neutral grip emphasizes the brachialis and forearms while reducing wrist strain.</p>
-<img src="hammer_curl.gif" alt="Hammer Curl">
-<h2>Workout B (12 minutes)</h2>
-<p>Perform two rounds of the following exercises with minimal rest. Focus on control and form.</p>
-<h3>One‑Arm Dumbbell Row – 12–15 reps each side</h3>
-<p>Place one hand on a chair for support. Hinge at the hips and pull a dumbbell toward your hip, keeping your back flat. This works your upper back and lats.</p>
-<img src="dumbbell_row.gif" alt="One-Arm Dumbbell Row">
-<h3>Dumbbell Romanian Deadlift – 10–15 reps</h3>
-<p>Hold a dumbbell in each hand. Push your hips back and lower the weights to mid-shin while keeping a slight knee bend and a neutral spine, then stand tall. This hip‑hinge movement targets the glutes and hamstrings.</p>
-<img src="dumbbell_romanian_deadlift.gif" alt="Dumbbell Romanian Deadlift">
-<h3>Rear Delt Fly – 10–15 reps</h3>
-<p>Hinge forward slightly and raise your arms out to the sides with dumbbells. Lead with the elbows and squeeze your shoulder blades at the top to target the rear deltoids.</p>
-<img src="rear_delt_fly.gif" alt="Rear Delt Fly">
-<h3>Dumbbell Squeeze Press – 10–15 reps</h3>
-<p>Lie on the floor and press two dumbbells together above your chest. Keep them squeezed as you press up and down to emphasize your chest and triceps.</p>
-<img src="dumbbell_chest_press.gif" alt="Dumbbell Squeeze Press">
-<h3>Skull Crusher / Lying Triceps Extension – 10–12 reps</h3>
-<p>Lie on a bench or the floor with a single dumbbell held with both hands. Keeping your elbows fixed, lower the weight behind your head and then extend your arms to work the triceps.</p>
-<img src="dumbbell_triceps_extension.gif" alt="Triceps Extension">
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="bar"></span>UPPER BODY <span class="brand-meta">home dumbbell</span></div>
+    <div class="topbar-spacer"></div>
+    <div class="session-tabs" id="tabs"></div>
+  </header>
+  <main class="sessions" id="sessions"></main>
+</div>
+
+<script>
+const WORKOUT_DATA = [
+  {
+    id: 'A', name: 'Workout A', duration: '12 min', targetRounds: 3,
+    exercises: [
+      { id: 'a1', name: 'Dumbbell Floor Press', reps: '10–15 reps', target: 'Chest · Triceps',
+        cue: 'Lie on your back with knees bent and press two dumbbells up from the floor. Limited range emphasizes the triceps and chest while keeping your shoulders safe.',
+        gif: 'uploads/dumbbell_floor_press.gif' },
+      { id: 'a2', name: 'Seated Dumbbell Shoulder Press', reps: '8–12 reps', target: 'Shoulders',
+        cue: 'Sit on a chair and press two dumbbells overhead without leaning back. Keep your ribs down and neck long to protect your spine.',
+        gif: 'uploads/seated_dumbbell_shoulder_press.gif' },
+      { id: 'a3', name: 'Dumbbell Lateral Raise', reps: '10–15 reps', target: 'Side delts',
+        cue: 'Lift dumbbells out to the sides with a slight bend in the elbows until your arms are parallel to the floor. Pause briefly at the top, control the descent.',
+        gif: 'uploads/dumbbell_lateral_raise.gif' },
+      { id: 'a4', name: 'Hammer Curl', reps: '10–15 reps', target: 'Biceps · Forearms',
+        cue: 'Stand with palms facing each other and curl the dumbbells up, keeping your elbows close to your sides. Neutral grip emphasizes the brachialis.',
+        gif: 'uploads/hammer_curl.gif' },
+    ],
+  },
+  {
+    id: 'B', name: 'Workout B', duration: '12 min', targetRounds: 2,
+    exercises: [
+      { id: 'b1', name: 'One-Arm Dumbbell Row', reps: '12–15 reps each side', target: 'Back · Lats',
+        cue: 'Place one hand on a chair for support. Hinge at the hips and pull a dumbbell toward your hip, keeping your back flat.',
+        gif: 'uploads/dumbbell_row.gif' },
+      { id: 'b2', name: 'Dumbbell Romanian Deadlift', reps: '10–15 reps', target: 'Glutes · Hamstrings',
+        cue: 'Push your hips back and lower the weights to mid-shin while keeping a slight knee bend and a neutral spine, then stand tall.',
+        gif: 'uploads/dumbbell_romanian_deadlift.gif' },
+      { id: 'b3', name: 'Rear Delt Fly', reps: '10–15 reps', target: 'Rear delts',
+        cue: 'Hinge forward slightly and raise your arms out to the sides. Lead with the elbows and squeeze your shoulder blades at the top.',
+        gif: 'uploads/rear_delt_fly.gif' },
+      { id: 'b4', name: 'Dumbbell Squeeze Press', reps: '10–15 reps', target: 'Chest · Triceps',
+        cue: 'Lie on the floor and press two dumbbells together above your chest. Keep them squeezed as you press up and down.',
+        gif: 'uploads/dumbbell_chest_press.gif' },
+      { id: 'b5', name: 'Skull Crusher', reps: '10–12 reps', target: 'Triceps',
+        cue: 'Lie on a bench or floor with a single dumbbell held in both hands. Keeping elbows fixed, lower the weight behind your head, then extend.',
+        gif: 'uploads/dumbbell_triceps_extension.gif' },
+    ],
+  },
+];
+
+(() => {
+  const sessionsEl = document.getElementById('sessions');
+  const tabsEl = document.getElementById('tabs');
+
+  const state = WORKOUT_DATA.map(s => ({ round: 1, ticks: {}, activeIdx: 0, target: s.targetRounds }));
+
+  function svgCheckInk() {
+    return '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5L5 9.5L11 3.5" stroke="#14120E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function buildSession(sess, sIdx) {
+    const sec = document.createElement('section');
+    sec.className = 'session';
+    sec.dataset.sIdx = sIdx;
+    sec.dataset.screenLabel = `${String(sIdx + 1).padStart(2, '0')} ${sess.name}`;
+
+    sec.innerHTML = `
+      <div class="session-banner">
+        <span class="name">${sess.name}</span>
+        <span class="meta">${sess.duration} · ${sess.exercises.length} movements</span>
+        <div class="spacer"></div>
+        <div class="rounds">
+          <span>Rounds ${sess.targetRounds}</span>
+          <div class="rounds-dots" data-rdots></div>
+        </div>
+      </div>
+      <div class="scroller" data-scroller></div>
+    `;
+
+    const dots = sec.querySelector('[data-rdots]');
+    for (let r = 0; r < sess.targetRounds; r++) {
+      const d = document.createElement('div'); d.className = 'd'; dots.appendChild(d);
+    }
+
+    const scroller = sec.querySelector('[data-scroller]');
+    sess.exercises.forEach((ex, i) => scroller.appendChild(buildSlide(ex, i, sess, sIdx)));
+    scroller.addEventListener('scroll', () => updateActive(sIdx, scroller, sess), { passive: true });
+
+    return sec;
+  }
+
+  function buildSlide(ex, i, sess, sIdx) {
+    const isLast = i === sess.exercises.length - 1;
+    const slide = document.createElement('article');
+    slide.className = 'slide';
+    slide.dataset.exIdx = i;
+
+    slide.innerHTML = `
+      <img src="${ex.gif}" alt="${ex.name}" loading="lazy">
+      <div class="overlay">
+        <div class="ovl-top">
+          <div class="ovl-tag">
+            <span>${sess.name}</span>
+            <span class="v"></span>
+            <span>Movement ${String(i + 1).padStart(2, '0')} / ${String(sess.exercises.length).padStart(2, '0')}</span>
+            <span class="v"></span>
+            <span>${ex.target}</span>
+          </div>
+          <div class="ovl-progress" data-progress></div>
+        </div>
+
+        <div class="ovl-mid">
+          <div class="big-num">${String(i + 1).padStart(2, '0')}</div>
+          <h1 class="ex-name">${ex.name.toUpperCase()}</h1>
+          <div class="stats-row">
+            <div class="stat"><span class="stat-label">Reps</span><span class="stat-val accent">${ex.reps}</span></div>
+            <div class="stat"><span class="stat-label">Tempo</span><span class="stat-val">2 · 1 · 2</span></div>
+          </div>
+        </div>
+
+        <div class="ovl-bot">
+          <p class="cue">${ex.cue}</p>
+          <div style="display:flex; gap:18px; align-items:flex-end;">
+            <div class="ticks-cluster">
+              <span class="lbl">Round ticks</span>
+              <div class="ticks" data-ticks></div>
+            </div>
+            ${isLast ? `<button class="round-btn" data-round-btn></button>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    const progEl = slide.querySelector('[data-progress]');
+    sess.exercises.forEach((_, j) => {
+      const seg = document.createElement('div');
+      seg.className = 'seg' + (j === i ? ' active' : '');
+      seg.addEventListener('click', () => scrollToEx(sIdx, j));
+      progEl.appendChild(seg);
+    });
+
+    const ticks = slide.querySelector('[data-ticks]');
+    for (let r = 0; r < sess.targetRounds; r++) {
+      const t = document.createElement('div'); t.className = 'tick';
+      t.innerHTML = svgCheckInk();
+      ticks.appendChild(t);
+    }
+
+    if (isLast) {
+      const btn = slide.querySelector('[data-round-btn]');
+      updateRoundBtn(btn, state[sIdx], sess);
+      btn.addEventListener('click', () => completeRound(sIdx, sess));
+    }
+
+    return slide;
+  }
+
+  function updateRoundBtn(btn, st, sess) {
+    if (st.round > sess.targetRounds) {
+      btn.classList.add('complete'); btn.disabled = true;
+      btn.innerHTML = `<span>SESSION DONE</span><span class="arrow"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l3.5 3.5L12 4"/></svg></span>`;
+    } else if (st.round === sess.targetRounds) {
+      btn.classList.add('complete');
+      btn.innerHTML = `<span>FINAL ROUND ${st.round}</span><span class="arrow"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2.5a5 5 0 1 0 1.5 5.5M11 1v3h-3"/></svg></span>`;
+    } else {
+      btn.classList.remove('complete');
+      btn.innerHTML = `<span>ROUND ${st.round} → ${st.round + 1}</span><span class="arrow"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2.5a5 5 0 1 0 1.5 5.5M11 1v3h-3"/></svg></span>`;
+    }
+  }
+
+  function completeRound(sIdx, sess) {
+    const st = state[sIdx];
+    sess.exercises.forEach((_, i) => { st.ticks[i] = (st.ticks[i] || 0) + 1; });
+    st.round = Math.min(sess.targetRounds + 1, st.round + 1);
+    refreshSession(sIdx);
+    setTimeout(() => scrollToEx(sIdx, 0), 60);
+  }
+
+  function refreshSession(sIdx) {
+    const sec = sessionsEl.querySelector(`.session[data-s-idx="${sIdx}"]`);
+    const sess = WORKOUT_DATA[sIdx];
+    const st = state[sIdx];
+
+    sec.querySelectorAll('[data-rdots] .d').forEach((d, r) => {
+      d.classList.toggle('done', r < st.round - 1);
+      d.classList.toggle('current', r === st.round - 1 && st.round <= sess.targetRounds);
+    });
+
+    sec.querySelectorAll('.slide').forEach((slide, i) => {
+      const done = st.ticks[i] || 0;
+      slide.querySelectorAll('.tick').forEach((t, r) => t.classList.toggle('done', r < done));
+      slide.querySelectorAll('.ovl-progress .seg').forEach((seg, j) => {
+        seg.classList.toggle('active', j === st.activeIdx);
+        seg.classList.toggle('done', j < st.activeIdx);
+      });
+    });
+
+    const btn = sec.querySelector('[data-round-btn]');
+    if (btn) updateRoundBtn(btn, st, sess);
+  }
+
+  function scrollToEx(sIdx, exIdx) {
+    const sec = sessionsEl.querySelector(`.session[data-s-idx="${sIdx}"]`);
+    const slide = sec.querySelector(`[data-ex-idx="${exIdx}"]`);
+    if (slide) slide.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  function updateActive(sIdx, scroller, sess) {
+    const slides = scroller.querySelectorAll('.slide');
+    const r = scroller.getBoundingClientRect();
+    const mid = r.top + r.height / 2;
+    let best = 0, bestD = Infinity;
+    slides.forEach((s) => {
+      const sr = s.getBoundingClientRect();
+      const d = Math.abs((sr.top + sr.height / 2) - mid);
+      if (d < bestD) { bestD = d; best = Number(s.dataset.exIdx); }
+    });
+    if (state[sIdx].activeIdx !== best) {
+      state[sIdx].activeIdx = best;
+      refreshSession(sIdx);
+    }
+  }
+
+  function updateTabs() {
+    const r = sessionsEl.getBoundingClientRect();
+    const mid = r.top + r.height / 2;
+    let cur = 0, bestD = Infinity;
+    sessionsEl.querySelectorAll('.session').forEach((sec) => {
+      const sr = sec.getBoundingClientRect();
+      const sMid = sr.top + sr.height / 2;
+      const d = Math.abs(sMid - mid);
+      if (d < bestD) { bestD = d; cur = Number(sec.dataset.sIdx); }
+    });
+    tabsEl.querySelectorAll('button').forEach((b, i) => b.classList.toggle('is-current', i === cur));
+  }
+
+  WORKOUT_DATA.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.textContent = s.name;
+    b.addEventListener('click', () => {
+      const sec = sessionsEl.querySelector(`.session[data-s-idx="${i}"]`);
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    tabsEl.appendChild(b);
+  });
+
+  WORKOUT_DATA.forEach((s, i) => sessionsEl.appendChild(buildSession(s, i)));
+  WORKOUT_DATA.forEach((_, i) => refreshSession(i));
+  sessionsEl.addEventListener('scroll', updateTabs, { passive: true });
+  updateTabs();
+})();
+</script>
 </body>
 </html>
